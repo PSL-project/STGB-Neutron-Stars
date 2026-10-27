@@ -1,0 +1,1 @@
+py -3 run.py --quality thesis --figures all --eos SLy4 --beta -10 --alpha 200

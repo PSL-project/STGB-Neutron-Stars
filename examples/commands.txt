@@ -1,0 +1,6 @@
+# On Windows run commands from the extracted repository directory
+py -3 run.py --figures all --quality quick
+py -3 run.py --figures all --quality thesis --beta -10 --alpha 30
+py -3 run.py --figures 1,6 --eos APR --preview-only
+py -3 run.py --figures 2,3,5 --quality thesis --save
+py -3 run.py --figures 7 --no-show --save --output "%USERPROFILE%\Documents\STGB_Results"
