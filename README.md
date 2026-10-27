@@ -77,7 +77,6 @@ Data provenance and redistribution rights have not been verified: **before publi
 
 Implemented independent tests include the GR-connected \(rr\) root, comparison between the GR solver and \(\phi_V=0\) in the modified solver, the Schwarzschild exterior Gauss–Bonnet invariant, a light-SLy linear zero-mode threshold, node-zero shooting, and line-break logic for missing numerical branches. The current SLy4 tabulation gives about **1.138 solar masses** in GR at \(8.1\times10^{14}\) g/cm³. The published light-SLy case is described as about **1.12 solar masses**; these are not an exact match, likely reflecting EOS representation and/or table choices. Full numerical reproduction and independent convergence studies remain necessary before quantitative thesis claims.
 
-Conventions and methodological reference: Ventagli, Antoniou, Lehébel, Sotiriou (2021), DOI [10.1103/PhysRevD.104.124078](https://doi.org/10.1103/PhysRevD.104.124078).
 
 **Known limitations:** approximate EOS surface; finite-radius asymptotic fits; center-root branch tracking near singular/disconnected regions; incomplete sampling of central-field roots; no radial stability proof; no causality/composition audit of user-supplied EOS; no observational likelihoods; potential missed scalarized branches at grid edges; no automatic adaptive parameter continuation.
 
