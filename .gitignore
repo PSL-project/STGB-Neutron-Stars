@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Generated results
+results/
+outputs/
+STGB_Results/
+
+# Operating system and editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
