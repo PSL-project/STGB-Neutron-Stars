@@ -1,0 +1,53 @@
+name: "Numerical or physics discrepancy"
+description: "Report a mismatch with GR, published results, convergence checks, or expected physics."
+title: "[Validation] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for suspected scientific or numerical discrepancies. A passed unit test does not establish physical correctness; independent comparisons are encouraged.
+  - type: textarea
+    id: discrepancy
+    attributes:
+      label: Observed discrepancy
+      description: Explain the result that seems incorrect and why.
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference or expected result
+      description: Provide DOI, equation number, figure, independent calculation, or physical argument.
+    validations:
+      required: true
+  - type: input
+    id: eos
+    attributes:
+      label: EOS and source
+      placeholder: e.g. APR / SLy4; data source and units
+    validations:
+      required: true
+  - type: input
+    id: parameters
+    attributes:
+      label: Model parameters and units
+      placeholder: alpha, beta, central density, normalization, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Numerical settings and reproduction
+      description: Command, tolerances, integration domain, boundary conditions, Python version and branch/commit.
+    validations:
+      required: true
+  - type: textarea
+    id: comparisons
+    attributes:
+      label: Convergence and consistency checks
+      description: e.g. step-size refinement, GR limit, alternative EOS, center/exterior checks.
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Data, plots, and additional notes
+      description: Attach figures or share small reproductions, respecting dataset licenses.

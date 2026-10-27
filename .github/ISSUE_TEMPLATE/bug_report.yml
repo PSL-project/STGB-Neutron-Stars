@@ -1,0 +1,60 @@
+name: "Bug report"
+description: "Report a program error, crash, incorrect output, or reproducible numerical failure."
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. For a possible security vulnerability, follow SECURITY.md instead of opening a public issue.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen.
+      placeholder: The shooting routine fails to converge for this parameter set...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide the exact command or a short reproducible script.
+      render: shell
+      placeholder: python run.py --quality thesis ...
+    validations:
+      required: true
+  - type: input
+    id: eos
+    attributes:
+      label: Equation of state (EOS)
+      placeholder: e.g. SLy4 (source/version if known)
+  - type: input
+    id: params
+    attributes:
+      label: Couplings and relevant parameters
+      placeholder: e.g. alpha = 30 km^2; beta = -10; central density = ...
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: e.g. Windows 11, Python 3.11, branch/commit ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output or plots
+      description: Paste the error traceback or attach plots/screenshots. Remove private information.
+      render: text
+  - type: textarea
+    id: checks
+    attributes:
+      label: Other checks
+      description: Mention whether the same problem occurs in the GR limit or with another EOS, if tested.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for duplicates.
+          required: true
+        - label: This report does not contain secrets or security exploit details.
+          required: true
