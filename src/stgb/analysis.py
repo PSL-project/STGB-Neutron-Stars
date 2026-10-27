@@ -1,5 +1,6 @@
 """Compute datasets behind all 7 figure families. Missing physics stays NaN."""
 from dataclasses import dataclass
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import numpy as np
 from .gravity import Couplings
 from .stellar import Settings,solve_gr,shoot,gr_curvature
@@ -22,10 +23,24 @@ class Plan:
     threshold_beta_max:float=5.
     threshold_samples:int=16
 
+def _sequence_worker(job):
+    """Process-safe numerical work unit (Windows uses spawn, not fork).
+
+    Return small Python tables, never scipy ODE objects or matplotlib state.
+    """
+    name, eos, alpha, plan, settings = job
+    study = Study({name: eos}, plan, settings, log=lambda message: None)
+    rows = study.sequence(name, alpha)
+    return rows, study.errors
+
+
 class Study:
-    def __init__(self,all_eos,plan,settings,log=print):
+    def __init__(self,all_eos,plan,settings,log=print,workers=1):
+        if not isinstance(workers,int) or workers<1:
+            raise ValueError('workers must be a positive integer')
         self.eos=all_eos;self.plan=plan;self.settings=settings;self.log=log
-        self.gr_cache={};self.scalar_cache={};self.scan_cache={}
+        self.workers=workers
+        self.gr_cache={};self.scalar_cache={};self.scan_cache={};self.sequence_cache={}
         self.datasets={};self.errors=[]
     def GR(self,name,rho):
         key=(name,float(rho))
@@ -64,6 +79,28 @@ class Study:
                      (f"{rows[-1]['M_GR']:.3f} M_sun" if np.isfinite(rows[-1]['M_GR']) else 'failed')+
                      (f", scalar={rows[-1]['M_ST']:.3f} M_sun" if np.isfinite(rows[-1]['M_ST']) else ', scalar not verified'))
         return rows
+    def _get_sequences(self, keys):
+        # Deduplicate figure 2/3 and figure 5 overlap before scheduling work.
+        missing=list(dict.fromkeys(key for key in keys if key not in self.sequence_cache))
+        if self.workers==1 or len(missing)<=1:
+            for name,alpha in missing:
+                self.sequence_cache[(name,alpha)]=self.sequence(name,alpha)
+        elif missing:
+            self.log(f'Computing {len(missing)} sequences using {self.workers} worker processes')
+            jobs={}
+            with ProcessPoolExecutor(max_workers=self.workers) as executor:
+                for name,alpha in missing:
+                    job=(name,self.eos[name],alpha,self.plan,self.settings)
+                    jobs[executor.submit(_sequence_worker,job)]=(name,alpha)
+                for future in as_completed(jobs):
+                    name,alpha=jobs[future]
+                    # Propagate exceptions: never silently substitute physics data.
+                    rows,errors=future.result()
+                    self.sequence_cache[(name,alpha)]=rows
+                    self.errors.extend(errors)
+                    self.log(f'  completed {name}, alpha={alpha:g} km^2')
+        return {key:self.sequence_cache[key] for key in keys}
+
     def calculate(self,figures):
         p=self.plan;fs=set(figures)
         if fs & {1,6}:
@@ -71,9 +108,19 @@ class Study:
             g=self.GR(p.eos,p.rho_c)
             s=self.ST(p.eos,p.rho_c)
             self.datasets['central']=dict(GR=g,ST=s)
-        if fs & {2,3}:
-            self.log('Figures 2/3: mass-radius and charge sequences')
-            self.datasets['sequences']={alpha:self.sequence(p.eos,alpha) for alpha in p.sequence_alphas}
+        if fs & {2,3} or 5 in fs:
+            keys=[]
+            if fs & {2,3}:
+                self.log('Figures 2/3: mass-radius and charge sequences')
+                keys.extend((p.eos,alpha) for alpha in p.sequence_alphas)
+            if 5 in fs:
+                self.log('Figure 5: six EOS comparisons')
+                keys.extend((name,p.alpha) for name in self.eos)
+            sequences=self._get_sequences(keys)
+            if fs & {2,3}:
+                self.datasets['sequences']={alpha:sequences[(p.eos,alpha)] for alpha in p.sequence_alphas}
+            if 5 in fs:
+                self.datasets['eos_sequences']={name:sequences[(name,p.alpha)] for name in self.eos}
         if 4 in fs:
             self.log('Figure 4: coupling parameter scan')
             g=self.GR(p.eos,p.rho_c);data=[]
@@ -84,9 +131,6 @@ class Study:
                 data.append(dict(alpha=a,delta_M_pct=100*(o['M_solar']/g['M_solar']-1) if s else np.nan,
                     Q_over_M=o.get('Q_over_M',np.nan),M_ST=o.get('M_solar',np.nan),M_GR=g['M_solar']))
             self.datasets['coupling']=data
-        if 5 in fs:
-            self.log('Figure 5: six EOS comparisons')
-            self.datasets['eos_sequences']={name:self.sequence(name,p.alpha) for name in self.eos}
         if 7 in fs:
             self.log('Figure 7: true linear zero-mode thresholds (not nonlinear existence domains)')
             g=self.GR(p.eos,p.rho_c);data=[]

@@ -30,6 +30,8 @@ def parse(argv=None):
     pa.add_argument('--preview-only',action='store_true',help='Display and never save')
     pa.add_argument('--verbose',action='store_true')
     pa.add_argument('--rmax',type=float,default=400.,help='Outer scalar integration radius [km]')
+    pa.add_argument('--exterior-max-step',type=float,default=4.,help='Maximum exterior radial integration step [km], default 4 (formerly 0.8)')
+    pa.add_argument('--workers',type=int,default=1,help='Independent stellar sequences in parallel (e.g. 4); 1 for serial')
     pa.add_argument('--rtol',type=float,default=3e-8)
     pa.add_argument('--shoot-high',type=float,default=.12)
     pa.add_argument('--sequence-alphas',default=None,help='Comma-separated alpha [km^2] for plots 2 and 3')
@@ -45,6 +47,8 @@ def parse(argv=None):
     a.figures=list(range(1,8)) if a.figures.strip().lower()=='all' else sorted(set(int(x) for x in a.figures.split(',')))
     if not a.figures or any(x not in range(1,8) for x in a.figures):pa.error('--figures must be all or 1..7')
     if a.preview_only and a.save:pa.error('Choose either --preview-only or --save')
+    if a.workers<1:pa.error('--workers must be >=1')
+    if a.exterior_max_step<=0:pa.error('--exterior-max-step must be positive')
     if a.no_show and not a.save:pa.error('Headless mode requires --save (or remove --no-show)')
     return a
 
@@ -133,7 +137,8 @@ def main(argv=None):
         import matplotlib
         if 'agg' in matplotlib.get_backend().lower():
             print('WARNING: non-interactive Matplotlib backend detected. Use Windows Python/TkAgg for figure windows.')
-    settings=Settings(rmax=args.rmax,rtol=args.rtol,shoot_high=args.shoot_high,verbose=args.verbose)
+    settings=Settings(rmax=args.rmax,rtol=args.rtol,shoot_high=args.shoot_high,verbose=args.verbose,
+                      exterior_max_step=args.exterior_max_step)
     plan=Plan(eos=args.eos,rho_c=args.rho_c,alpha=args.alpha,beta=args.beta)
     if args.quality=='quick':
         plan.sequence_points=5
@@ -168,7 +173,7 @@ def main(argv=None):
     print('\nSTGB research package | model: Ricci + Gauss–Bonnet, canonical scalar')
     print('EOS:',names,'| figure IDs:',args.figures,'|',args.quality)
     print('GR baseline dashed; scalarized n=0 solid. No missing-point interpolation.')
-    study=Study(eos,plan,settings)
+    study=Study(eos,plan,settings,workers=args.workers)
     study.calculate(args.figures)
     plots=build(study,args.figures)
     print('\nFigure calculations complete. Figures are prepared in memory.')
