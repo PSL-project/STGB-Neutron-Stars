@@ -1,7 +1,6 @@
 # Scalarized neutron stars — Ricci + Gauss–Bonnet (STGB)
 
-A Python research implementation for exploratory, static, spherically symmetric neutron stars in quadratic Ricci-scalar and Gauss–Bonnet scalar–tensor gravity. It loads tabulated equations of state, integrates GR and fully coupled scalarized stellar configurations, and constructs seven diagnostic figure families. Developed for a neutron-star thesis; **not a peer-reviewed or production-validated physics code**.
-
+A Python research implementation for exploratory, static, spherically symmetric neutron stars in quadratic Ricci-scalar and Gauss–Bonnet scalar–tensor gravity. It loads tabulated equations of state, integrates GR and fully coupled scalarized stellar configurations, and constructs seven diagnostic figure families. Developed for a neutron-star thesis.
 The model uses the **canonical field normalization** :
 
 \[
@@ -71,7 +70,6 @@ Required CSV fields are `rho_g_cm-3`, `epsilon_MeV_fm-3`, and `P_MeV_fm-3`; `rho
 
 The supplied log-polynomial fitted formulas are **not used**, because their listed relative errors can be large. We use shape-preserving PCHIP on the standardized tables. **FSUGarnet, G3, and IOPB contain small lower-density pressure reversals**; these points are excluded with warnings, not silently fixed. APR has localized superluminal secant slopes and needs a separate physical validity assessment. The stellar surface is defined at the **minimum tabulated positive pressure**, so its radius can differ slightly from the mathematical \(p=0\) surface.
 
-Data provenance and redistribution rights have not been verified: **before publishing to GitHub, inspect `data/README.md` and remove any data whose public redistribution rights are unknown.** The MIT license applies to author-written code, not automatically to EOS data.
 
 ## Verification and limitations
 
@@ -80,27 +78,3 @@ Implemented independent tests include the GR-connected \(rr\) root, comparison b
 
 **Known limitations:** approximate EOS surface; finite-radius asymptotic fits; center-root branch tracking near singular/disconnected regions; incomplete sampling of central-field roots; no radial stability proof; no causality/composition audit of user-supplied EOS; no observational likelihoods; potential missed scalarized branches at grid edges; no automatic adaptive parameter continuation.
 
-## Repository layout
-
-```text
-STGB-Neutron-Stars/
-├── run.py                     # No-install entry point
-├── RUN_WINDOWS.bat            # Interactive preview then save prompt
-├── INSTALL_WINDOWS.bat
-├── pyproject.toml             # Editable package + CLI command
-├── requirements.txt
-├── src/stgb/
-│   ├── gravity.py             # Published rr branch and radial equations
-│   ├── eos.py                 # Tabulated EOS with validation
-│   ├── stellar.py             # GR, nonlinear scalar shooting, diagnostics
-│   ├── onset.py               # Linear GR zero-mode threshold
-│   ├── analysis.py            # Physics datasets, cache, parameter scans
-│   ├── figures.py             # Seven figure designs
-│   └── cli.py                 # Preview before saving; output fallback
-├── tests/                     # Small physics and plotting unit tests
-├── data/                      # EOS tables (audit licensing before public release)
-├── docs/                      # Numerical verification and figure interpretation notes
-└── LICENSE                    # Software only
-```
-
-Saved runs create uniquely timestamped output subfolders with `figures/*.png` and `*.pdf` (vector), `data/*.csv` where applicable, and an audit-ready `run_metadata.json` with input parameters and warnings.
