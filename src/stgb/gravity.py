@@ -42,8 +42,8 @@ def radial_rr_coeffs(r, u, phi, psi, p, c: Couplings):
     return A,B,C
 
 
-def algebraic_x(r,u,phi,psi,p,c):
-    A,B,C=radial_rr_coeffs(r,u,phi,psi,p,c)
+def _rr_root_from_coeffs(A, B, C, r):
+    """Recover exp(Lambda) from already-computed rr coefficients."""
     D=B*B-4*A*C
     if not np.isfinite(D) or D < 0 or abs(A)<1e-14:
         raise ValueError(f'Nonreal/singular rr branch at r={r}, A={A}, D={D}')
@@ -51,6 +51,10 @@ def algebraic_x(r,u,phi,psi,p,c):
     if not np.isfinite(x) or x<=0:
         raise ValueError(f'Unphysical exp(Lambda)={x} at r={r}')
     return x
+
+
+def algebraic_x(r,u,phi,psi,p,c):
+    return _rr_root_from_coeffs(*radial_rr_coeffs(r,u,phi,psi,p,c),r)
 
 
 def rhs(r,y,eps_of_p:Callable[[float],float],c:Couplings,diagnostics=False):
@@ -61,7 +65,7 @@ def rhs(r,y,eps_of_p:Callable[[float],float],c:Couplings,diagnostics=False):
     # Matter exterior is vacuum; scalar and metric remain nontrivial.
     pdot=-0.5*(eps+p)*u if p>0 else 0.0
     A,B,C=radial_rr_coeffs(r,u,phi,psi,p,c)
-    x=algebraic_x(r,u,phi,psi,p,c)
+    x=_rr_root_from_coeffs(A,B,C,r)
     # Row 1, tt: tL*Lambda' + tPsi*phi'' = -t0.
     tL=x*(-8*a*k*phi*psi+b*k*r*r*phi*psi+b*k*r*phi**2-2*r)+24*a*k*phi*psi
     tPsi=16*a*k*phi*(x-1)-2*b*k*r*r*phi*x
@@ -91,14 +95,44 @@ def rhs(r,y,eps_of_p:Callable[[float],float],c:Couplings,diagnostics=False):
     cU=2*x*B_u+C_u
     cPsi=2*x*B_psi+C_psi
     c0=E_r+E_phi*psi+E_p*pdot
-    mat=np.array([[tL,0,tPsi],[sL,sU,1],[cL,cU,cPsi]],dtype=float)
-    vec=-np.array([t0,s0,c0],dtype=float)
-    try:
-        Lprime, Uprime, psiprime=np.linalg.solve(mat,vec)
-    except np.linalg.LinAlgError as exc:
-        raise ValueError(f'Singular radial system at r={r}') from exc
+    # Eliminate Lambda' analytically and solve the remaining 2x2 system.
+    # This matrix has the exact sparse pattern
+    #   [tL,  0, tPsi]
+    #   [sL, sU,    1]
+    #   [cL, cU, cPsi]
+    # and is evaluated thousands of times inside solve_ivp. Avoiding a generic
+    # numpy.linalg.solve call and two temporary arrays significantly reduces
+    # Python overhead without modifying the field equations.
+    use_fallback = abs(tL) <= 1e-12 * max(1., abs(tPsi))
+    if not use_fallback:
+        L0=-t0/tL
+        L1=-tPsi/tL
+        h1=-s0-sL*L0
+        h2=-c0-cL*L0
+        k1=1.+sL*L1
+        k2=cPsi+cL*L1
+        det=sU*k2-cU*k1
+        scale=abs(sU*k2)+abs(cU*k1)
+        use_fallback=(not np.isfinite(det) or
+                      abs(det)<=2e-13*max(scale,1e-300))
+        if not use_fallback:
+            Uprime=(h1*k2-k1*h2)/det
+            psiprime=(sU*h2-cU*h1)/det
+            Lprime=L0+L1*psiprime
+            if not (np.isfinite(Lprime) and np.isfinite(Uprime) and
+                    np.isfinite(psiprime)):
+                use_fallback=True
+    if use_fallback:
+        mat=np.array([[tL,0.,tPsi],[sL,sU,1.],[cL,cU,cPsi]])
+        vec=np.array([-t0,-s0,-c0])
+        try:
+            Lprime, Uprime, psiprime=np.linalg.solve(mat,vec)
+        except np.linalg.LinAlgError as exc:
+            raise ValueError(f'Singular radial system at r={r}') from exc
     deriv=np.array([u,Uprime,psi,psiprime,pdot])
     if diagnostics:
+        mat=np.array([[tL,0.,tPsi],[sL,sU,1.],[cL,cU,cPsi]])
+        vec=np.array([-t0,-s0,-c0])
         return deriv, {'expLambda':x,'LambdaPrime':Lprime,
                        'rreq':4*A*x*x+2*B*x+C,
                        'linear_resid':np.max(np.abs(mat@np.array([Lprime,Uprime,psiprime])-vec)),
@@ -138,7 +172,12 @@ def initial_state(r0,eps0,p0,phi0,c,Gamma0=0):
 def regular_center(eps_c,p_c,phi_c,c,r0=1e-3):
     # Continuation of the regular central series along phi_c from 0.
     if phi_c==0:
-        return initial_state(r0,eps_c,p_c,0,c)
+        # At phi=0 the central coefficients are exactly their GR values;
+        # there is no need to invoke a nonlinear root finder.
+        g=c.kappa*(eps_c+3*p_c)/6.
+        l=c.kappa*eps_c/3.
+        return (np.array([g*r0*r0,2*g*r0,0.,0.,
+                          p_c-(eps_c+p_c)*g*r0*r0]),(g,l,0.))
     a,b,k=c.alpha,c.beta,c.kappa
     gg=k*(eps_c+3*p_c)/6  # GR: Gamma_2=kappa*(epsilon_c+3*p_c)/6
     ll=k*eps_c/3
@@ -149,7 +188,7 @@ def regular_center(eps_c,p_c,phi_c,c,r0=1e-3):
                64*a*k*g*ph*s+2*b*k*g*ph*ph-b*k*l*ph*ph+8*b*k*ph*s-4*g+2*k*p_c+2*l,
                2*s+b*(g-l)*ph-8*a*g*l*ph])
     v=np.array([gg,ll,0.])
-    for ph in np.linspace(0,phi_c,max(7,int(abs(phi_c)/.015)+1)):
+    for ph in np.linspace(0,phi_c,max(7,int(abs(phi_c)/.015)+1))[1:]:
         rr=root(lambda x:f(x,ph),v,tol=1e-11)
         if np.max(np.abs(f(rr.x,ph)))>1e-9 or not np.all(np.isfinite(rr.x)) or rr.x[1]<=0:
             raise ValueError(f'No GR-connected regular center root at phi={ph}')

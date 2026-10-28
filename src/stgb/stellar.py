@@ -11,6 +11,7 @@ class Settings:
     r0:float=1e-3
     rmax:float=400.
     max_step:float=.8
+    exterior_max_step:float=4.
     rtol:float=3e-8
     shoot_low:float=1e-5
     shoot_high:float=.12
@@ -41,12 +42,12 @@ def solve_scalar(eos,rho_c,phi_c,c:Couplings,st:Settings):
     surface.terminal=True;surface.direction=-1
     sol=solve_ivp(lambda r,y:rhs(r,y,eos.epsilon,c),(st.r0,min(st.rmax,65.)),y0,
                   events=surface,dense_output=True,rtol=st.rtol,
-                  atol=[1e-11,1e-11,1e-11,1e-11,1e-19],max_step=min(.16,st.max_step))
+                  atol=[1e-11,1e-11,1e-11,1e-11,1e-19],max_step=min(.3,st.max_step))
     if not sol.success or not len(sol.t_events[0]):raise RuntimeError('Scalar interior failed: '+sol.message)
     rs=float(sol.t_events[0][0]);ys=sol.y_events[0][0].copy();ys[4]=0.
     vac=solve_ivp(lambda r,y:rhs(r,y,lambda p:0.,c),(rs,st.rmax),ys,
                   dense_output=True,rtol=st.rtol,
-                  atol=[1e-11,1e-11,1e-11,1e-11,1e-11],max_step=st.max_step)
+                  atol=[1e-11,1e-11,1e-11,1e-11,1e-11],max_step=st.exterior_max_step)
     if not vac.success:raise RuntimeError('Scalar exterior failed: '+vac.message)
     y=vac.y[:,-1];x=algebraic_x(st.rmax,y[1],y[2],y[3],0.,c)
     m=st.rmax*(1-1/x)/2
