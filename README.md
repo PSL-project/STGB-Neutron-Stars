@@ -78,3 +78,17 @@ Implemented independent tests include the GR-connected \(rr\) root, comparison b
 
 **Known limitations:** approximate EOS surface; finite-radius asymptotic fits; center-root branch tracking near singular/disconnected regions; incomplete sampling of central-field roots; no radial stability proof; no causality/composition audit of user-supplied EOS; no observational likelihoods; potential missed scalarized branches at grid edges; no automatic adaptive parameter continuation.
 
+
+## Windows desktop application
+
+Starting with **v1.3.1**, a standalone **Windows 64-bit executable** is available from the GitHub Releases page as **`STGB neutron star.exe`**. The desktop application provides graphical interface for the existing STGB calculation pipeline, so Python does not need to be installed for normal use of the released executable.
+
+The GUI includes built-in selection of the supplied EOS tables, loading of an external standardized EOS CSV, editable STGB parameters, figure selection, quick/thesis calculation modes, a progress bar with live calculation status, a selectable output folder, a calculation log, and an integrated chart-review panel with zoom and pan controls. Numerical CSV files, PNG/PDF figures, and run metadata are saved using the same research pipeline as the command-line version.
+
+For a custom EOS file, the CSV must use the standardized columns expected by the project: `rho_g_cm-3`, `epsilon_MeV_fm-3`, and `P_MeV_fm-3`. Figure 5 remains the dedicated comparison of the six EOS tables distributed with the repository and is therefore disabled for custom-EOS runs.
+
+Be aware that this executable format was not used for the main numerical analysis of the thesis, and thus any probable error that exe file may cause did not affect the orifinal scientific analysis and results.
+
+### Download
+
+Open **Releases**, choose **v1.3.1** or newer, download **`STGB neutron star.exe`**, and run it directly on Windows 64-bit. The executable is portable and does not use an installer.
