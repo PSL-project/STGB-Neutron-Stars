@@ -92,3 +92,10 @@ Be aware that this executable format was not used for the main numerical analysi
 ### Download
 
 Open **Releases**, choose **v1.3.1** or newer, download **`STGB neutron star.exe`**, and run it directly on Windows 64-bit. The executable is portable and does not use an installer.
+
+
+
+### DOI 
+
+
+https://doi.org/10.5281/zenodo.23805078 
