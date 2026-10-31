@@ -1,4 +1,4 @@
-# Scalarized neutron stars — Ricci + Gauss–Bonnet (STGB)
+# Scalar-Tensor-Gauss-Bonnet Neutron Stars
 
 A Python research implementation for exploratory, static, spherically symmetric neutron stars in quadratic Ricci-scalar and Gauss–Bonnet scalar–tensor gravity. It loads tabulated equations of state, integrates GR and fully coupled scalarized stellar configurations, and constructs seven diagnostic figure families. Developed for a neutron-star thesis.
 The model uses the **canonical field normalization** :
