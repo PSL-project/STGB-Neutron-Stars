@@ -95,7 +95,7 @@ Open **Releases**, choose **v1.3.1** or newer, download **`STGB neutron star.exe
 
 
 
-### DOI 
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23805078.svg)](https://doi.org/10.5281/zenodo.23805078)
 
-https://doi.org/10.5281/zenodo.23805078 
+  
