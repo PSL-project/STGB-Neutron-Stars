@@ -1,6 +1,6 @@
-"""Independent code-facing STGB radial system for Ventagli et al. (2021).
+"""Independent code-facing STGB radial system .
 
-Uses their canonical scalar normalization, static spherical metric
+Uses canonical scalar normalization, static spherical metric
  ds^2=-exp(Gamma) dt^2+exp(Lambda) dr^2+r^2 dOmega^2,
  kappa = 8*pi, gamma_derivative_coupling=0, scalar_mass=0.
 
@@ -9,14 +9,13 @@ Lambda is NOT integrated: x=exp(Lambda) is the GR-connected algebraic
 root of the rr field equation. Lambda', U', psi' are obtained by solving
 three linear relations: tt, scalar, and derivative of the rr constraint.
 
-The derivation is independent of the typographical problem in the printed
-Appendix A3 scalar equation; the scalar row uses Box(phi)=(beta R/2-alpha G)phi.
+ the scalar row uses Box(phi)=(beta R/2-alpha G)phi.
 
 Requires numpy and scipy; EOS callback eps_of_p(p) must return geometrized
 energy density (km^-2) given geometrized pressure (km^-2).
 A stand-alone EOS+stellar structure+shooting+plotting script is included
 below. Verified against its GR limit and several sample scalarized runs;
-NOT YET quantitatively benchmarked against the published paper results.
+NOT YET quantitatively benchmarked.
 """
 from dataclasses import dataclass
 from typing import Callable
