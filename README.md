@@ -43,6 +43,16 @@ The **default** behavior is always *compute → display all requested plots → 
 
 To change the scanned parameter ranges without editing source, use `--sequence-alphas`, `--coupling-alphas`, `--threshold-alphas`, `--density-low`, `--density-high`, `--sequence-points`, `--beta-min`, and `--beta-max`. The required comma-separated lists can begin with a negative number when using the `--option=-200,-100,0` syntax.
 
+
+## Numerical method and solver documentation
+
+The mathematical reduction, central regularity conditions, EOS interpolation, ODE integration, nonlinear shooting method, asymptotic extraction of mass and scalar charge, linear zero-mode threshold calculation, numerical settings, and validation limits are documented in [Numerical Methods](docs/NUMERICAL_METHODS.md). See also [Optimization Notes](docs/OPTIMIZATION.md) and the [Validation Checklist](docs/VALIDATION.md).
+
+The **default** behavior is always *compute → display all requested plots → close the plot windows → ask whether to save*. `--save` requests saving after preview. `--preview-only` disables saving. For automated/headless jobs use `--no-show --save`. Data and figure files are written only when saving is explicitly requested or approved. `--quality thesis` runs denser, substantially slower parameter/central-density grids; the plots should still be treated as preliminary until independent benchmark convergence is shown.
+
+To change the scanned parameter ranges without editing source, use `--sequence-alphas`, `--coupling-alphas`, `--threshold-alphas`, `--density-low`, `--density-high`, `--sequence-points`, `--beta-min`, and `--beta-max`. The required comma-separated lists can begin with a negative number when using the `--option=-200,-100,0` syntax.
+
+
 ## Figure plan and conventions
 
 | # | File prefix | Content | Baseline / format |
