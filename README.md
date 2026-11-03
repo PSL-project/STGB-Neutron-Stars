@@ -99,12 +99,12 @@ For a custom EOS file, the CSV must use the standardized columns expected by the
 
 Be aware that this executable format was not used for the main numerical analysis of the thesis, and thus any probable error that exe file may cause did not affect the orifinal scientific analysis and results.
 
-### Download
+## Download
 
 Open **Releases**, choose **v1.3.1** or newer, download **`STGB neutron star.exe`**, and run it directly on Windows 64-bit. The executable is portable and does not use an installer.
 
 
-
+## Digital Object Identifier
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23805078.svg)](https://doi.org/10.5281/zenodo.23805078)
 
